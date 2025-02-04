@@ -1,0 +1,74 @@
+Q1
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+
+#define N 100000000  // Vector size
+#define SCALAR 10.098 // Scalar value
+
+int main() {
+    double *arr = (double *)malloc(N * sizeof(double));
+    if (!arr) {
+        printf("Memory allocation failed\n");
+        return 1;
+    }
+
+    // Initialize array
+    for (long long i = 0; i < N; i++) arr[i] = i;
+
+    // Sequential addition
+    double start = omp_get_wtime();
+    for (long long i = 0; i < N; i++) arr[i] += SCALAR;
+    double end = omp_get_wtime();
+    printf("Sequential Time: %f seconds\n", end - start);
+
+    // Parallel addition
+    start = omp_get_wtime();
+    #pragma omp parallel for
+    for (long long i = 0; i < N; i++) arr[i] += SCALAR;
+    end = omp_get_wtime();
+    printf("Parallel Time: %f seconds\n", end - start);
+
+    free(arr);
+    return 0;
+}
+
+====================================================================================================================
+Q2
+#include <stdio.h>
+#include <omp.h>
+int main() {
+    long long num_terms = 10000000; // Number of terms
+    double pi = 0.0, start, end;
+    int num_threads;
+    printf("Enter number of threads: ");
+    scanf("%d", &num_threads);
+    omp_set_num_threads(num_threads);
+    // Sequential Calculation
+    start = omp_get_wtime();
+    for (long long i = 0; i < num_terms; i++) {
+        double term = 1.0 / (2 * i + 1);
+        if (i % 2 == 1) term = -term; // Alternate signs
+        pi += term;
+    }
+    pi *= 4;
+    end = omp_get_wtime();
+    printf("Sequential Calculation:\n");
+    printf("Estimated Pi: %.3f\n", pi);
+    printf("Time taken: %.6f seconds\n\n", end - start);
+    // Parallel Calculation
+    pi = 0.0;
+    start = omp_get_wtime();
+    #pragma omp parallel for reduction(+:pi)
+    for (long long i = 0; i < num_terms; i++) {
+        double term = 1.0 / (2 * i + 1);
+        if (i % 2 == 1) term = -term; // Alternate signs
+        pi += term;
+    }
+    pi *= 4;
+    end = omp_get_wtime();
+    printf("Parallel Calculation:\n");
+    printf("Estimated Pi: %.3f\n", pi);
+    printf("Time taken: %.6f seconds\n", end - start);
+    return 0;
+}
